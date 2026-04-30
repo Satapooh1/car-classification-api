@@ -53,5 +53,5 @@ jobs:
         # เพิ่ม Remote ของ Hugging Face Space พร้อม Token สำหรับ Authentication
         git remote add hf https://Satapooh:$HF_TOKEN@huggingface.co/spaces/Satapooh/car-classification-api
         
-        # Push เฉพาะข้อมูลในโฟลเดอร์ api/ ไปเป็น Root ของ Hugging Face Space
-        git subtree push --prefix api hf main
+        # Split โฟลเดอร์ api/ ออกมาแล้วบังคับ (force) push ไปทับ branch main บน Hugging Face (แก้ปัญหาดันไม่ขึ้นถ้า Space มีไฟล์ตั้งต้นอยู่แล้ว)
+        git push hf `git subtree split --prefix api main`:main --force
