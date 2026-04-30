@@ -1,6 +1,7 @@
 import io
 from fastapi.testclient import TestClient
 from PIL import Image
+from unittest.mock import patch
 from main import app
 
 client = TestClient(app)
@@ -12,8 +13,12 @@ def generate_dummy_image():
     img.save(img_byte_arr, format='JPEG')
     return img_byte_arr.getvalue()
 
-def test_predict_endpoint_success():
-    """ทดสอบว่า API Endpoint /predict ทำงานได้และตอบกลับเป็น JSON ที่ถูกต้อง"""
+@patch("main.run_inference")
+def test_predict_endpoint_success(mock_run_inference):
+    """ทดสอบว่า API Endpoint /predict ทำงานได้และตอบกลับเป็น JSON ที่ถูกต้อง (โดยการ Mock ผลลัพธ์โมเดล)"""
+    # จำลองผลลัพธ์ว่าโมเดลทำนายได้อะไร เพื่อให้ผ่านโดยไม่ต้องโหลดไฟล์ ONNX จริงๆ
+    mock_run_inference.return_value = {"prediction": "Toyota Camry"}
+
     img_bytes = generate_dummy_image()
     files = {"file": ("test_image.jpg", img_bytes, "image/jpeg")}
     
@@ -27,6 +32,7 @@ def test_predict_endpoint_success():
     assert "filename" in data
     assert "prediction" in data
     assert data["filename"] == "test_image.jpg"
+    assert data["prediction"] == "Toyota Camry"
 
 def test_predict_endpoint_invalid_file():
     """ทดสอบ Error Handling ดักจับ Error กรณีไฟล์ไม่ใช่รูปภาพ"""
