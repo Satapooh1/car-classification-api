@@ -1,0 +1,161 @@
+{
+  "info": {
+    "name": "Car Classification API",
+    "description": "Postman collection for the High-Throughput Image Classification API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url_local",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "base_url_cloud",
+      "value": "https://YOUR_HF_USERNAME-YOUR_SPACE_NAME.hf.space",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Predict (Local)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/your/car.jpg",
+              "description": "Image file to classify (max 5MB)"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url_local}}/predict",
+          "host": ["{{base_url_local}}"],
+          "path": ["predict"]
+        },
+        "description": "Upload an image to classify against the car model dataset. Returns predicted car model name."
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"filename\": \"car.jpg\",\n  \"prediction\": \"Toyota Corolla 2018\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Predict (Cloud - Hugging Face Spaces)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/your/car.jpg",
+              "description": "Image file to classify (max 5MB)"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url_cloud}}/predict",
+          "host": ["{{base_url_cloud}}"],
+          "path": ["predict"]
+        },
+        "description": "Same endpoint on Hugging Face Spaces cloud deployment."
+      }
+    },
+    {
+      "name": "Predict - Invalid File Type (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/document.txt",
+              "description": "Non-image file — should return 400"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url_local}}/predict",
+          "host": ["{{base_url_local}}"],
+          "path": ["predict"]
+        },
+        "description": "Test error handling: uploading a non-image file should return HTTP 400."
+      },
+      "response": [
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"detail\": \"Invalid file type. Please upload an image.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Predict - Corrupted Image (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/broken.jpg",
+              "description": "Corrupted image file — should return 400"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url_local}}/predict",
+          "host": ["{{base_url_local}}"],
+          "path": ["predict"]
+        },
+        "description": "Test error handling: uploading a corrupted image should return HTTP 400."
+      },
+      "response": [
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"detail\": \"File is corrupted or not a valid image format.\"\n}"
+        }
+      ]
+    }
+  ]
+}

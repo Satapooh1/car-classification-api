@@ -1,0 +1,56 @@
+name: FastAPI CI/CD to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ "main" ] # รันเมื่อมีการ Push โค้ดเข้า Branch main
+    paths:
+      - 'api/**'         # ทริกเกอร์เฉพาะเมื่อมีการแก้โค้ดในโฟลเดอร์ api
+      - '.github/workflows/**'
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r api/requirements.txt
+        pip install pytest httpx
+
+    - name: Run pytest
+      run: |
+        cd api
+        pytest test_main.py -v
+
+  deploy:
+    name: Deploy to Hugging Face Spaces
+    runs-on: ubuntu-latest
+    needs: test # บังคับว่าต้องรอ Job 'test' ผ่าน 100% ก่อนถึงจะ Deploy
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Push to Hub
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: |
+        # อัปเดตอีเมลและชื่อให้เป็น Bot ของ Github Action
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        
+        # เพิ่ม Remote ของ Hugging Face Space พร้อม Token สำหรับ Authentication
+        git remote add hf https://Satapooh:$HF_TOKEN@huggingface.co/spaces/Satapooh/car-classification-api
+        
+        # Push เฉพาะข้อมูลในโฟลเดอร์ api/ ไปเป็น Root ของ Hugging Face Space
+        git subtree push --prefix api hf main
