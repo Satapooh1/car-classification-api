@@ -38,6 +38,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        lfs: true  # ดึงไฟล์จริงจาก Git LFS (model_quantized.onnx) ไม่ใช่แค่ pointer
 
     - name: Set up Python for deployment
       uses: actions/setup-python@v4
