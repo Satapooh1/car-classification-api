@@ -35,7 +35,6 @@ jobs:
     name: Deploy to Hugging Face Spaces
     runs-on: ubuntu-latest
     needs: test # บังคับว่าต้องรอ Job 'test' ผ่าน 100% ก่อนถึงจะ Deploy
-    environment: "Hugging Face"
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -49,17 +48,15 @@ jobs:
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
-        pip install huggingface_hub
-        python - <<'EOF'
-import os
-from huggingface_hub import HfApi
-
-api = HfApi()
-api.upload_folder(
-    folder_path="api",
-    repo_id="Satapooh/car-classification-api",
-    repo_type="space",
-    token=os.environ["HF_TOKEN"],
-)
-print("Deploy to HF Space สำเร็จ!")
-EOF
+        pip install -q huggingface_hub
+        python -c "
+        from huggingface_hub import HfApi
+        import os
+        HfApi().upload_folder(
+            folder_path='api',
+            repo_id='Satapooh/car-classification-api',
+            repo_type='space',
+            token=os.environ['HF_TOKEN']
+        )
+        print('Deploy to HF Space สำเร็จ!')
+        "
