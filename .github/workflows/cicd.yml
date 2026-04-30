@@ -35,6 +35,7 @@ jobs:
     name: Deploy to Hugging Face Spaces
     runs-on: ubuntu-latest
     needs: test # บังคับว่าต้องรอ Job 'test' ผ่าน 100% ก่อนถึงจะ Deploy
+    environment: "Hugging Face"
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
