@@ -39,20 +39,27 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        lfs: true
 
-    - name: Push to Hub
+    - name: Set up Python for deployment
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Upload api/ folder to Hugging Face Space
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
-        # อัปเดตอีเมลและชื่อให้เป็น Bot ของ Github Action
-        git config --global user.email "actions@github.com"
-        git config --global user.name "GitHub Actions"
-        
-        # เพิ่ม Remote ของ Hugging Face Space พร้อม Token สำหรับ Authentication
-        git remote add hf https://Satapooh:$HF_TOKEN@huggingface.co/spaces/Satapooh/car-classification-api
-        
-        # Split โฟลเดอร์ api/ ออกมาแล้วบังคับ (force) push ไปทับ branch main บน Hugging Face (แก้ปัญหาดันไม่ขึ้นถ้า Space มีไฟล์ตั้งต้นอยู่แล้ว)
-        git push hf `git subtree split --prefix api main`:main --force
+        pip install huggingface_hub
+        python - <<'EOF'
+import os
+from huggingface_hub import HfApi
+
+api = HfApi()
+api.upload_folder(
+    folder_path="api",
+    repo_id="Satapooh/car-classification-api",
+    repo_type="space",
+    token=os.environ["HF_TOKEN"],
+)
+print("Deploy to HF Space สำเร็จ!")
+EOF
