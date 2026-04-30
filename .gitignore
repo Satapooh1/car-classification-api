@@ -1,7 +1,6 @@
 # Model files (ขนาดใหญ่เกิน GitHub limit)
 optimization/baseline_model/
 optimization/onnx_model/
-model_quantized.onnx
 
 # JMeter results (generate ได้ใหม่เสมอ)
 results/html-report/
