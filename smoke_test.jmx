@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
-    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Car Classification API - Load Test">
-      <stringProp name="TestPlan.comments">Load Test Plan for High-Throughput Image Classification API
-Tests: Local Docker (localhost:8000) and Cloud (Hugging Face Spaces)
-Metrics: TPS (Throughput) and P95 Latency
-Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Car Classification API - Smoke Test">
+      <stringProp name="TestPlan.comments">Smoke Test - ทดสอบความพร้อมขั้นต้น (Sanity Check)
+Purpose : ยืนยันว่า API ทำงานได้ก่อนรัน test อื่น ๆ
+Target  : Error rate = 0%, Response time &lt; 5s, HTTP 200, JSON has prediction
+Duration: ~2.5 minutes (Local 60s + Cloud 65s)
+Targets : LOCAL (localhost:8000) and CLOUD (Hugging Face Spaces)</stringProp>
       <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments">
           <elementProp name="IMAGE_PATH" elementType="Argument">
             <stringProp name="Argument.name">IMAGE_PATH</stringProp>
             <stringProp name="Argument.value">C:\Work\aie494\Project\test\car.jpeg</stringProp>
-            <stringProp name="Argument.desc">EDIT THIS: absolute path to a car image file</stringProp>
+            <stringProp name="Argument.desc">Absolute path to a car image file</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="LOCAL_HOST" elementType="Argument">
@@ -28,82 +29,35 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
           <elementProp name="CLOUD_HOST" elementType="Argument">
             <stringProp name="Argument.name">CLOUD_HOST</stringProp>
             <stringProp name="Argument.value">satapooh-car-classification-api.hf.space</stringProp>
-            <stringProp name="Argument.desc">EDIT THIS: your Hugging Face Space URL (no https://)</stringProp>
+            <stringProp name="Argument.desc">Hugging Face Space URL (no https://)</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
       </elementProp>
     </TestPlan>
     <hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[PHASE 1] WARMUP - Local 1 User 30s" enabled="false">
+
+      <!-- ═══════════════════════════════════════════════════════════
+           SMOKE 1 : LOCAL - 1 User, 60 seconds
+           Pass criteria: 0% error, HTTP 200, JSON has prediction
+           ═══════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[SMOKE 1] LOCAL - 1 User 60s" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
-        <longProp name="ThreadGroup.duration">30</longProp>
+        <longProp name="ThreadGroup.duration">60</longProp>
         <longProp name="ThreadGroup.delay">0</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <stringProp name="ThreadGroup.on_sample_error">stoptest</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
           <intProp name="LoopController.loops">-1</intProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict (Warmup)" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict (Local Smoke)" enabled="true">
           <intProp name="HTTPSampler.connect_timeout">10000</intProp>
           <intProp name="HTTPSampler.response_timeout">30000</intProp>
-          <stringProp name="HTTPSampler.domain">${LOCAL_HOST}</stringProp>
-          <stringProp name="HTTPSampler.port">${LOCAL_PORT}</stringProp>
-          <stringProp name="HTTPSampler.protocol">http</stringProp>
-          <stringProp name="HTTPSampler.path">/predict</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">true</boolProp>
-          <boolProp name="HTTPSampler.BROWSER_COMPATIBLE_MULTIPART">true</boolProp>
-          <elementProp name="HTTPsampler.Files" elementType="HTTPFileArgs">
-            <collectionProp name="HTTPFileArgs.files">
-              <elementProp name="${IMAGE_PATH}" elementType="HTTPFileArg">
-                <stringProp name="File.path">${IMAGE_PATH}</stringProp>
-                <stringProp name="File.paramname">file</stringProp>
-                <stringProp name="File.mimetype">image/jpeg</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
-            <collectionProp name="Arguments.arguments"/>
-          </elementProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">Accept</stringProp>
-                <stringProp name="Header.value">application/json</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-        </hashTree>
-      </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[PHASE 2] LOCAL - Ramp-up 50 Users (Critical Point)" enabled="true">
-        <intProp name="ThreadGroup.num_threads">50</intProp>
-        <intProp name="ThreadGroup.ramp_time">120</intProp>
-        <longProp name="ThreadGroup.duration">300</longProp>
-        <longProp name="ThreadGroup.delay">30</longProp>
-        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
-        <boolProp name="ThreadGroup.scheduler">true</boolProp>
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <intProp name="LoopController.loops">-1</intProp>
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-        </elementProp>
-      </ThreadGroup>
-      <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict (Local)" enabled="true">
-          <intProp name="HTTPSampler.connect_timeout">10000</intProp>
-          <intProp name="HTTPSampler.response_timeout">60000</intProp>
           <stringProp name="HTTPSampler.domain">${LOCAL_HOST}</stringProp>
           <stringProp name="HTTPSampler.port">${LOCAL_PORT}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -141,7 +95,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <collectionProp name="Asserion.test_strings">
               <stringProp name="49586">200</stringProp>
             </collectionProp>
-            <stringProp name="Assertion.custom_message">Expected HTTP 200 but got different status code</stringProp>
+            <stringProp name="Assertion.custom_message">SMOKE FAIL: Expected HTTP 200 from Local API</stringProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <boolProp name="Assertion.assume_success">false</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
@@ -156,29 +110,34 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <boolProp name="ISREGEX">false</boolProp>
           </JSONPathAssertion>
           <hashTree/>
-          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 2000ms (Local)" enabled="true">
-            <longProp name="DurationAssertion.duration">2000</longProp>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 5000ms" enabled="true">
+            <longProp name="DurationAssertion.duration">5000</longProp>
           </DurationAssertion>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[PHASE 3] CLOUD - Hugging Face Spaces 30 Users">
-        <intProp name="ThreadGroup.num_threads">30</intProp>
-        <intProp name="ThreadGroup.ramp_time">60</intProp>
-        <longProp name="ThreadGroup.duration">180</longProp>
-        <longProp name="ThreadGroup.delay">0</longProp>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           SMOKE 2 : CLOUD - 1 User, 60 seconds
+           Pass criteria: 0% error, HTTP 200, JSON has prediction
+           ═══════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[SMOKE 2] CLOUD - 1 User 60s" enabled="true">
+        <intProp name="ThreadGroup.num_threads">1</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <longProp name="ThreadGroup.duration">60</longProp>
+        <longProp name="ThreadGroup.delay">5</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <stringProp name="ThreadGroup.on_sample_error">stoptest</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
           <intProp name="LoopController.loops">-1</intProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict (Cloud)" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict (Cloud Smoke)" enabled="true">
           <intProp name="HTTPSampler.connect_timeout">15000</intProp>
-          <intProp name="HTTPSampler.response_timeout">120000</intProp>
+          <intProp name="HTTPSampler.response_timeout">60000</intProp>
           <stringProp name="HTTPSampler.domain">${CLOUD_HOST}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
           <stringProp name="HTTPSampler.protocol">https</stringProp>
@@ -216,7 +175,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <collectionProp name="Asserion.test_strings">
               <stringProp name="49586">200</stringProp>
             </collectionProp>
-            <stringProp name="Assertion.custom_message">Expected HTTP 200 but got different status code</stringProp>
+            <stringProp name="Assertion.custom_message">SMOKE FAIL: Expected HTTP 200 from Cloud API</stringProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <boolProp name="Assertion.assume_success">false</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
@@ -231,12 +190,14 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <boolProp name="ISREGEX">false</boolProp>
           </JSONPathAssertion>
           <hashTree/>
-          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 5000ms (Cloud)" enabled="true">
-            <longProp name="DurationAssertion.duration">5000</longProp>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 10000ms" enabled="true">
+            <longProp name="DurationAssertion.duration">10000</longProp>
           </DurationAssertion>
           <hashTree/>
         </hashTree>
       </hashTree>
+
+      <!-- Result Collectors -->
       <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="Aggregate Report">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
@@ -271,7 +232,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <connectTime>true</connectTime>
           </value>
         </objProp>
-        <stringProp name="filename">results/aggregate_report.jtl</stringProp>
+        <stringProp name="filename">results/smoke_aggregate.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
       <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
@@ -308,11 +269,11 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <connectTime>true</connectTime>
           </value>
         </objProp>
-        <stringProp name="filename">results/summary_report.jtl</stringProp>
+        <stringProp name="filename">results/smoke_summary.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Debug - Disabled)" enabled="false">
-        <boolProp name="ResultCollector.error_logging">true</boolProp>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Smoke Debug)" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
           <value class="SampleSaveConfiguration">
@@ -328,7 +289,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <encoding>false</encoding>
             <assertions>true</assertions>
             <subresults>true</subresults>
-            <responseData>false</responseData>
+            <responseData>true</responseData>
             <samplerData>false</samplerData>
             <xml>false</xml>
             <fieldNames>true</fieldNames>
@@ -345,9 +306,10 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <connectTime>true</connectTime>
           </value>
         </objProp>
-        <stringProp name="filename"></stringProp>
+        <stringProp name="filename">results/smoke_debug.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
+
     </hashTree>
   </hashTree>
 </jmeterTestPlan>

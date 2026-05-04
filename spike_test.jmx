@@ -1,44 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
-    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Car Classification API - Load Test">
-      <stringProp name="TestPlan.comments">Load Test Plan for High-Throughput Image Classification API
-Tests: Local Docker (localhost:8000) and Cloud (Hugging Face Spaces)
-Metrics: TPS (Throughput) and P95 Latency
-Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Car Classification API - Spike Test">
+      <stringProp name="TestPlan.comments">Spike Test - ทดสอบพฤติกรรมไวรัล (Sudden Traffic Spike)
+Purpose : จำลองกรณี viral — traffic พุ่งขึ้นทันทีและกลับสู่ปกติ
+Pattern : 1 user (120s) → SPIKE 100 users (60s) → Recovery 1 user (120s)
+Metrics : Error rate during spike, Time-to-recover, P95 latency
+Target  : ตั้ง HOST/PORT/PROTOCOL ให้ถูกต้องก่อนรัน
+LOCAL   : HOST=localhost, PORT=8000, PROTOCOL=http
+CLOUD   : HOST=satapooh-car-classification-api.hf.space, PORT=443, PROTOCOL=https</stringProp>
       <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments">
           <elementProp name="IMAGE_PATH" elementType="Argument">
             <stringProp name="Argument.name">IMAGE_PATH</stringProp>
             <stringProp name="Argument.value">C:\Work\aie494\Project\test\car.jpeg</stringProp>
-            <stringProp name="Argument.desc">EDIT THIS: absolute path to a car image file</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="LOCAL_HOST" elementType="Argument">
-            <stringProp name="Argument.name">LOCAL_HOST</stringProp>
+          <elementProp name="HOST" elementType="Argument">
+            <stringProp name="Argument.name">HOST</stringProp>
             <stringProp name="Argument.value">localhost</stringProp>
+            <stringProp name="Argument.desc">EDIT: localhost or satapooh-car-classification-api.hf.space</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="LOCAL_PORT" elementType="Argument">
-            <stringProp name="Argument.name">LOCAL_PORT</stringProp>
+          <elementProp name="PORT" elementType="Argument">
+            <stringProp name="Argument.name">PORT</stringProp>
             <stringProp name="Argument.value">8000</stringProp>
+            <stringProp name="Argument.desc">EDIT: 8000 (local) or 443 (cloud)</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="CLOUD_HOST" elementType="Argument">
-            <stringProp name="Argument.name">CLOUD_HOST</stringProp>
-            <stringProp name="Argument.value">satapooh-car-classification-api.hf.space</stringProp>
-            <stringProp name="Argument.desc">EDIT THIS: your Hugging Face Space URL (no https://)</stringProp>
+          <elementProp name="PROTOCOL" elementType="Argument">
+            <stringProp name="Argument.name">PROTOCOL</stringProp>
+            <stringProp name="Argument.value">http</stringProp>
+            <stringProp name="Argument.desc">EDIT: http (local) or https (cloud)</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
       </elementProp>
     </TestPlan>
     <hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[PHASE 1] WARMUP - Local 1 User 30s" enabled="false">
+
+      <!-- ═══════════════════════════════════════════════════════════
+           SPIKE 1 : BASELINE - 5 Users, 120 seconds (normal traffic)
+           Establish baseline TPS and latency before the spike
+           ═══════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[SPIKE 1] BASELINE - 1 User 120s" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
-        <intProp name="ThreadGroup.ramp_time">1</intProp>
-        <longProp name="ThreadGroup.duration">30</longProp>
+        <intProp name="ThreadGroup.ramp_time">5</intProp>
+        <longProp name="ThreadGroup.duration">120</longProp>
         <longProp name="ThreadGroup.delay">0</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
@@ -49,12 +58,12 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict (Warmup)" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict [Baseline 1 user]" enabled="true">
           <intProp name="HTTPSampler.connect_timeout">10000</intProp>
           <intProp name="HTTPSampler.response_timeout">30000</intProp>
-          <stringProp name="HTTPSampler.domain">${LOCAL_HOST}</stringProp>
-          <stringProp name="HTTPSampler.port">${LOCAL_PORT}</stringProp>
-          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${PROTOCOL}</stringProp>
           <stringProp name="HTTPSampler.path">/predict</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -85,13 +94,38 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             </collectionProp>
           </HeaderManager>
           <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert HTTP 200" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message">Expected HTTP 200 but got different status code</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assert JSON has prediction field" enabled="true">
+            <stringProp name="JSON_PATH">$.prediction</stringProp>
+            <stringProp name="EXPECTED_VALUE"></stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+            <boolProp name="EXPECT_NULL">false</boolProp>
+            <boolProp name="INVERT">false</boolProp>
+            <boolProp name="ISREGEX">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[PHASE 2] LOCAL - Ramp-up 50 Users (Critical Point)" enabled="true">
-        <intProp name="ThreadGroup.num_threads">50</intProp>
-        <intProp name="ThreadGroup.ramp_time">120</intProp>
-        <longProp name="ThreadGroup.duration">300</longProp>
-        <longProp name="ThreadGroup.delay">30</longProp>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           SPIKE 2 : SPIKE - 100 Users, 60 seconds (viral burst)
+           Ramp-up 5s = sudden spike จำลอง viral content
+           Timeout เพิ่มเป็น 60s เผื่อ server queue สูง
+           ═══════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[SPIKE 2] VIRAL SPIKE - 100 Users 60s" enabled="true">
+        <intProp name="ThreadGroup.num_threads">100</intProp>
+        <intProp name="ThreadGroup.ramp_time">5</intProp>
+        <longProp name="ThreadGroup.duration">60</longProp>
+        <longProp name="ThreadGroup.delay">5</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
@@ -101,12 +135,12 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict (Local)" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict [SPIKE 100 users]" enabled="true">
           <intProp name="HTTPSampler.connect_timeout">10000</intProp>
           <intProp name="HTTPSampler.response_timeout">60000</intProp>
-          <stringProp name="HTTPSampler.domain">${LOCAL_HOST}</stringProp>
-          <stringProp name="HTTPSampler.port">${LOCAL_PORT}</stringProp>
-          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${PROTOCOL}</stringProp>
           <stringProp name="HTTPSampler.path">/predict</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -156,17 +190,18 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <boolProp name="ISREGEX">false</boolProp>
           </JSONPathAssertion>
           <hashTree/>
-          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 2000ms (Local)" enabled="true">
-            <longProp name="DurationAssertion.duration">2000</longProp>
-          </DurationAssertion>
-          <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[PHASE 3] CLOUD - Hugging Face Spaces 30 Users">
-        <intProp name="ThreadGroup.num_threads">30</intProp>
-        <intProp name="ThreadGroup.ramp_time">60</intProp>
-        <longProp name="ThreadGroup.duration">180</longProp>
-        <longProp name="ThreadGroup.delay">0</longProp>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           SPIKE 3 : RECOVERY - 5 Users, 120 seconds
+           ดู recovery time — latency/error กลับสู่ baseline ไหม
+           ═══════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[SPIKE 3] RECOVERY - 1 User 120s" enabled="true">
+        <intProp name="ThreadGroup.num_threads">1</intProp>
+        <intProp name="ThreadGroup.ramp_time">5</intProp>
+        <longProp name="ThreadGroup.duration">120</longProp>
+        <longProp name="ThreadGroup.delay">5</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
@@ -176,12 +211,12 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict (Cloud)" enabled="true">
-          <intProp name="HTTPSampler.connect_timeout">15000</intProp>
-          <intProp name="HTTPSampler.response_timeout">120000</intProp>
-          <stringProp name="HTTPSampler.domain">${CLOUD_HOST}</stringProp>
-          <stringProp name="HTTPSampler.port">443</stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /predict [Recovery 1 user]" enabled="true">
+          <intProp name="HTTPSampler.connect_timeout">10000</intProp>
+          <intProp name="HTTPSampler.response_timeout">30000</intProp>
+          <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${PROTOCOL}</stringProp>
           <stringProp name="HTTPSampler.path">/predict</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -231,12 +266,10 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <boolProp name="ISREGEX">false</boolProp>
           </JSONPathAssertion>
           <hashTree/>
-          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 5000ms (Cloud)" enabled="true">
-            <longProp name="DurationAssertion.duration">5000</longProp>
-          </DurationAssertion>
-          <hashTree/>
         </hashTree>
       </hashTree>
+
+      <!-- Result Collectors -->
       <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="Aggregate Report">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
@@ -271,7 +304,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <connectTime>true</connectTime>
           </value>
         </objProp>
-        <stringProp name="filename">results/aggregate_report.jtl</stringProp>
+        <stringProp name="filename">results/spike_aggregate.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
       <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
@@ -308,7 +341,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <connectTime>true</connectTime>
           </value>
         </objProp>
-        <stringProp name="filename">results/summary_report.jtl</stringProp>
+        <stringProp name="filename">results/spike_summary.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Debug - Disabled)" enabled="false">
@@ -348,6 +381,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
+
     </hashTree>
   </hashTree>
 </jmeterTestPlan>
