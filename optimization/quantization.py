@@ -1,5 +1,6 @@
 import os
 import time
+import numpy as np
 from onnxruntime.quantization import quantize_dynamic, QuantType
 import onnxruntime as ort
 from transformers import AutoConfig, AutoImageProcessor
@@ -41,15 +42,21 @@ inputs = processor(images=image, return_tensors="np")
 session = ort.InferenceSession(quantized_model_path, providers=['CPUExecutionProvider'])
 input_name = session.get_inputs()[0].name
 
-# Warm-up run
-_ = session.run(None, {input_name: inputs["pixel_values"]})
+# Warmup — ให้ CPU/cache พร้อมก่อนจับเวลาจริง
+N_RUNS = 20
+print(f"Warmup 3 รอบ + วัด {N_RUNS} รอบ เพื่อความแม่นยำ...")
+for _ in range(3):
+    session.run(None, {input_name: inputs["pixel_values"]})
 
-# เริ่มจับเวลา
-start_time = time.time()
-outputs = session.run(None, {input_name: inputs["pixel_values"]})
-end_time = time.time()
+# วัดซ้ำ N รอบ
+times = []
+for _ in range(N_RUNS):
+    t0 = time.perf_counter()
+    outputs = session.run(None, {input_name: inputs["pixel_values"]})
+    times.append((time.perf_counter() - t0) * 1000)
 
-latency_ms = (end_time - start_time) * 1000
+latency_ms = float(np.mean(times))
+latency_std = float(np.std(times))
 
 # แปลงผลลัพธ์
 logits = outputs[0]
@@ -63,9 +70,9 @@ quantized_size_mb = os.path.getsize(quantized_model_path) / (1024 * 1024)
 # 3. สรุปผล
 # ---------------------------------------------------------
 print("\n" + "="*40)
-print("🎯 ผลลัพธ์การทดสอบ Quantized ONNX Model")
+print("ผลลัพธ์การทดสอบ Quantized ONNX Model")
 print("="*40)
-print(f"🚗 คำทำนาย (Prediction): {predicted_class}")
-print(f"⏱️ ความเร็ว (Latency): {latency_ms:.2f} ms")
-print(f"📦 ขนาดโมเดล (Model Size): {quantized_size_mb:.2f} MB")
+print(f"คำทำนาย (Prediction): {predicted_class}")
+print(f"ความเร็ว (Latency): {latency_ms:.2f} ms  (±{latency_std:.2f} ms, n={N_RUNS})")
+print(f"ขนาดโมเดล (Model Size): {quantized_size_mb:.2f} MB")
 print("="*40)

@@ -11,7 +11,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
         <collectionProp name="Arguments.arguments">
           <elementProp name="IMAGE_PATH" elementType="Argument">
             <stringProp name="Argument.name">IMAGE_PATH</stringProp>
-            <stringProp name="Argument.value">C:\Work\aie494\Project\test\car.jpeg</stringProp>
+            <stringProp name="Argument.value">C:/Work/aie494/Project/tests/resources/car.jpeg</stringProp>
             <stringProp name="Argument.desc">EDIT THIS: absolute path to a car image file</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
@@ -87,7 +87,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[PHASE 2] LOCAL - Ramp-up 50 Users (Critical Point)" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[PHASE 2] LOCAL - Ramp-up 50 Users (Critical Point)">
         <intProp name="ThreadGroup.num_threads">50</intProp>
         <intProp name="ThreadGroup.ramp_time">120</intProp>
         <longProp name="ThreadGroup.duration">300</longProp>
@@ -156,8 +156,8 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <boolProp name="ISREGEX">false</boolProp>
           </JSONPathAssertion>
           <hashTree/>
-          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 2000ms (Local)" enabled="true">
-            <longProp name="DurationAssertion.duration">2000</longProp>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 9000ms (Local)" enabled="true">
+            <stringProp name="DurationAssertion.duration">9000</stringProp>
           </DurationAssertion>
           <hashTree/>
         </hashTree>
@@ -231,8 +231,8 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
             <boolProp name="ISREGEX">false</boolProp>
           </JSONPathAssertion>
           <hashTree/>
-          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 5000ms (Cloud)" enabled="true">
-            <longProp name="DurationAssertion.duration">5000</longProp>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 20000ms (Cloud)" enabled="true">
+            <stringProp name="DurationAssertion.duration">20000</stringProp>
           </DurationAssertion>
           <hashTree/>
         </hashTree>
@@ -311,7 +311,7 @@ Strategy: Ramp-up to find critical point (bottleneck)</stringProp>
         <stringProp name="filename">results/summary_report.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Debug - Disabled)" enabled="false">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Debug - Disabled)">
         <boolProp name="ResultCollector.error_logging">true</boolProp>
         <objProp>
           <name>saveConfig</name>

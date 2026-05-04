@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
-    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Car Classification API - Extended Stepping Test">
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Car Classification API - Stress Test">
       <stringProp name="TestPlan.comments">Extended Stepping Test: Find Critical Point and Breaking Point
 LOCAL  : HOST=localhost, PORT=8000, PROTOCOL=http
 CLOUD  : HOST=satapooh-car-classification-api.hf.space, PORT=443, PROTOCOL=https
@@ -12,7 +12,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
         <collectionProp name="Arguments.arguments">
           <elementProp name="IMAGE_PATH" elementType="Argument">
             <stringProp name="Argument.name">IMAGE_PATH</stringProp>
-            <stringProp name="Argument.value">C:\Work\aie494\Project\test\car.jpeg</stringProp>
+            <stringProp name="Argument.value">C:/Work/aie494/Project/tests/resources/car.jpeg</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="HOST" elementType="Argument">
@@ -32,6 +32,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           </elementProp>
         </collectionProp>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
     </TestPlan>
     <hashTree>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 1] 1 User - Baseline">
@@ -86,7 +87,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 2] 5 Users" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 2] 5 Users">
         <intProp name="ThreadGroup.num_threads">5</intProp>
         <intProp name="ThreadGroup.ramp_time">5</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -138,7 +139,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 3] 10 Users" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 3] 10 Users">
         <intProp name="ThreadGroup.num_threads">10</intProp>
         <intProp name="ThreadGroup.ramp_time">5</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -190,7 +191,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 4] 20 Users" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 4] 20 Users">
         <intProp name="ThreadGroup.num_threads">20</intProp>
         <intProp name="ThreadGroup.ramp_time">5</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -242,7 +243,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 5] 30 Users" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 5] 30 Users">
         <intProp name="ThreadGroup.num_threads">30</intProp>
         <intProp name="ThreadGroup.ramp_time">5</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -294,7 +295,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 6] 50 Users" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 6] 50 Users">
         <intProp name="ThreadGroup.num_threads">50</intProp>
         <intProp name="ThreadGroup.ramp_time">5</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -346,7 +347,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 7] 75 Users" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 7] 75 Users">
         <intProp name="ThreadGroup.num_threads">75</intProp>
         <intProp name="ThreadGroup.ramp_time">10</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -398,7 +399,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 8] 100 Users" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 8] 100 Users">
         <intProp name="ThreadGroup.num_threads">100</intProp>
         <intProp name="ThreadGroup.ramp_time">10</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -450,7 +451,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 9] 150 Users" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 9] 150 Users">
         <intProp name="ThreadGroup.num_threads">150</intProp>
         <intProp name="ThreadGroup.ramp_time">15</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -502,7 +503,7 @@ Timeout: 30s per request — errors appear when queue wait exceeds 30s</stringPr
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 10] 200 Users - Breaking Point" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[STEP 10] 200 Users - Breaking Point">
         <intProp name="ThreadGroup.num_threads">200</intProp>
         <intProp name="ThreadGroup.ramp_time">20</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>

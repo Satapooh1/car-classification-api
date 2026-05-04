@@ -1,0 +1,50 @@
+{
+  "POST /predict (Cloud Smoke)" : {
+    "transaction" : "POST /predict (Cloud Smoke)",
+    "sampleCount" : 46,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 1325.695652173913,
+    "medianResTime" : 1253.5,
+    "minResTime" : 1041.0,
+    "maxResTime" : 5202.0,
+    "pct1ResTime" : 1353.7,
+    "pct2ResTime" : 1513.5499999999997,
+    "pct3ResTime" : 5202.0,
+    "throughput" : 0.7538511963290724,
+    "receivedKBytesPerSec" : 0.3857597918715175,
+    "sentKBytesPerSec" : 1086.8896884474352
+  },
+  "Total" : {
+    "transaction" : "Total",
+    "sampleCount" : 215,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 561.7627906976741,
+    "medianResTime" : 318.0,
+    "minResTime" : 208.0,
+    "maxResTime" : 5202.0,
+    "pct1ResTime" : 1275.8,
+    "pct2ResTime" : 1341.6,
+    "pct3ResTime" : 3365.4000000000046,
+    "throughput" : 1.7063492063492065,
+    "receivedKBytesPerSec" : 0.4173487103174603,
+    "sentKBytesPerSec" : 2460.1526227678573
+  },
+  "POST /predict (Local Smoke)" : {
+    "transaction" : "POST /predict (Local Smoke)",
+    "sampleCount" : 169,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 353.8284023668638,
+    "medianResTime" : 303.0,
+    "minResTime" : 208.0,
+    "maxResTime" : 3587.0,
+    "pct1ResTime" : 407.0,
+    "pct2ResTime" : 496.5,
+    "pct3ResTime" : 2617.500000000016,
+    "throughput" : 2.8178877513589224,
+    "receivedKBytesPerSec" : 0.48432445726481477,
+    "sentKBytesPerSec" : 4062.7142041499237
+  }
+}

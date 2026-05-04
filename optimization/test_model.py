@@ -6,8 +6,8 @@ from transformers import AutoImageProcessor, AutoConfig
 from PIL import Image
 
 MODEL_ID = "dima806/car_models_image_detection"
-ONNX_PATH = Path(__file__).parent / "api" / "model_quantized.onnx"
-IMAGE_PATH = Path(__file__).parent / "test" / "car.jpeg"
+ONNX_PATH = Path(__file__).parent.parent / "api" / "model_quantized.onnx"
+IMAGE_PATH = Path(__file__).parent.parent / "tests" / "resources" / "car.jpeg"
 
 print(f"โหลดโมเดล: {ONNX_PATH}")
 session = ort.InferenceSession(str(ONNX_PATH), providers=["CPUExecutionProvider"])

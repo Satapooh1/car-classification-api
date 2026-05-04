@@ -12,7 +12,7 @@ Targets : LOCAL (localhost:8000) and CLOUD (Hugging Face Spaces)</stringProp>
         <collectionProp name="Arguments.arguments">
           <elementProp name="IMAGE_PATH" elementType="Argument">
             <stringProp name="Argument.name">IMAGE_PATH</stringProp>
-            <stringProp name="Argument.value">C:\Work\aie494\Project\test\car.jpeg</stringProp>
+            <stringProp name="Argument.value">C:/Work/aie494/Project/tests/resources/car.jpeg</stringProp>
             <stringProp name="Argument.desc">Absolute path to a car image file</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
@@ -36,12 +36,7 @@ Targets : LOCAL (localhost:8000) and CLOUD (Hugging Face Spaces)</stringProp>
       </elementProp>
     </TestPlan>
     <hashTree>
-
-      <!-- ═══════════════════════════════════════════════════════════
-           SMOKE 1 : LOCAL - 1 User, 60 seconds
-           Pass criteria: 0% error, HTTP 200, JSON has prediction
-           ═══════════════════════════════════════════════════════════ -->
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[SMOKE 1] LOCAL - 1 User 60s" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[SMOKE 1] LOCAL - 1 User 60s">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -111,16 +106,11 @@ Targets : LOCAL (localhost:8000) and CLOUD (Hugging Face Spaces)</stringProp>
           </JSONPathAssertion>
           <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 5000ms" enabled="true">
-            <longProp name="DurationAssertion.duration">5000</longProp>
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
           </DurationAssertion>
           <hashTree/>
         </hashTree>
       </hashTree>
-
-      <!-- ═══════════════════════════════════════════════════════════
-           SMOKE 2 : CLOUD - 1 User, 60 seconds
-           Pass criteria: 0% error, HTTP 200, JSON has prediction
-           ═══════════════════════════════════════════════════════════ -->
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[SMOKE 2] CLOUD - 1 User 60s" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -191,13 +181,11 @@ Targets : LOCAL (localhost:8000) and CLOUD (Hugging Face Spaces)</stringProp>
           </JSONPathAssertion>
           <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert Response &lt; 10000ms" enabled="true">
-            <longProp name="DurationAssertion.duration">10000</longProp>
+            <stringProp name="DurationAssertion.duration">10000</stringProp>
           </DurationAssertion>
           <hashTree/>
         </hashTree>
       </hashTree>
-
-      <!-- Result Collectors -->
       <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="Aggregate Report">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
@@ -272,7 +260,7 @@ Targets : LOCAL (localhost:8000) and CLOUD (Hugging Face Spaces)</stringProp>
         <stringProp name="filename">results/smoke_summary.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Smoke Debug)" enabled="true">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Smoke Debug)">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -309,7 +297,6 @@ Targets : LOCAL (localhost:8000) and CLOUD (Hugging Face Spaces)</stringProp>
         <stringProp name="filename">results/smoke_debug.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
-
     </hashTree>
   </hashTree>
 </jmeterTestPlan>

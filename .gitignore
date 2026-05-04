@@ -7,6 +7,13 @@ results/html-report/
 results/stepping-html-report/
 results/*.jtl
 
+# JMeter logs
+jmeter.log
+*.log
+
+# Temporary directories
+temp/
+
 # Python cache
 __pycache__/
 *.pyc

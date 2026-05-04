@@ -1,5 +1,6 @@
 import time
 import os
+import numpy as np
 import torch
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 from PIL import Image
@@ -22,15 +23,23 @@ image = Image.open(requests.get(url, stream=True).raw)
 inputs = processor(images=image, return_tensors="pt")
 
 # 3. ทดสอบ Inference และจับเวลาเพื่อหาค่า Latency
-print("เริ่มทำการทำนายผล (Inference)...")
-start_time = time.time()
+N_RUNS = 20
+print(f"Warmup 3 รอบ + วัด {N_RUNS} รอบ เพื่อความแม่นยำ...")
 
-# ใช้ torch.no_grad() เพื่อบอก PyTorch ว่าไม่ต้องจำการคำนวณสำหรับทำ Backpropagation ช่วยให้ทำงานเร็วขึ้นและประหยัด Memory
 with torch.no_grad():
-    outputs = model(**inputs)
-    
-end_time = time.time()
-latency_ms = (end_time - start_time) * 1000 # แปลงเป็นมิลลิวินาที
+    # Warmup — ให้ CPU/cache พร้อมก่อนจับเวลาจริง
+    for _ in range(3):
+        model(**inputs)
+
+    # วัดซ้ำ N รอบ
+    times = []
+    for _ in range(N_RUNS):
+        t0 = time.perf_counter()
+        outputs = model(**inputs)
+        times.append((time.perf_counter() - t0) * 1000)
+
+latency_ms = float(np.mean(times))
+latency_std = float(np.std(times))
 
 # 4. แปลงผลลัพธ์เป็นชื่อคลาส
 logits = outputs.logits
@@ -55,9 +64,9 @@ model_size_mb = get_dir_size(save_dir) / (1024 * 1024)
 
 # 6. สรุปผลสำหรับบันทึกลงตาราง Data Collection
 print("\n" + "="*40)
-print("🎯 ผลลัพธ์การทดสอบ Baseline (Original Model)")
+print("ผลลัพธ์การทดสอบ Baseline (Original Model)")
 print("="*40)
-print(f"🚗 คำทำนาย (Prediction): {predicted_class}")
-print(f"⏱️ ความเร็ว (Latency): {latency_ms:.2f} ms")
-print(f"📦 ขนาดโมเดล (Model Size): {model_size_mb:.2f} MB")
+print(f"คำทำนาย (Prediction): {predicted_class}")
+print(f"ความเร็ว (Latency): {latency_ms:.2f} ms  (±{latency_std:.2f} ms, n={N_RUNS})")
+print(f"ขนาดโมเดล (Model Size): {model_size_mb:.2f} MB")
 print("="*40)

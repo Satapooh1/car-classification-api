@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Car Classification API - Endurance Test">
@@ -16,7 +16,7 @@ NOTE    : Cloud mode ใช้ 5 users แทน 10 เพื่อหลีก�
         <collectionProp name="Arguments.arguments">
           <elementProp name="IMAGE_PATH" elementType="Argument">
             <stringProp name="Argument.name">IMAGE_PATH</stringProp>
-            <stringProp name="Argument.value">C:\Work\aie494\Project\test\car.jpeg</stringProp>
+            <stringProp name="Argument.value">C:/Work/aie494/Project/tests/resources/car.jpeg</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="HOST" elementType="Argument">

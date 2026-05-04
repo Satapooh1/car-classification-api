@@ -5,8 +5,8 @@ FastAPI-based image classification service using an ONNX-quantized model (`dima8
 ## System Architecture
 
 ```
-Client → FastAPI (async) → ThreadPoolExecutor → ONNX Runtime (Quantized INT8)
-                                                        ↓
+Client → FastAPI (async) → ProcessPoolExecutor → ONNX Runtime (Quantized INT8)
+                                (4 workers)               ↓
                                               Hugging Face Model Config
 ```
 
@@ -15,27 +15,42 @@ CI/CD Pipeline: `GitHub Push` → `pytest` → (if pass) → `Deploy to HF Space
 ## Project Structure
 
 ```
-├── api/
-│   ├── main.py               # FastAPI application
-│   ├── test_main.py          # pytest unit tests
-│   ├── requirements.txt      # Python dependencies
-│   ├── Dockerfile            # Container definition
-│   └── model_quantized.onnx  # Quantized ONNX model
-├── optimization/
-│   ├── inference_test.py     # Baseline (PyTorch) benchmark
-│   ├── convers_onnx.py       # ONNX conversion + benchmark
-│   └── quantization.py       # Dynamic quantization + benchmark
-└── .github/workflows/
-    └── cicd.yml              # CI/CD pipeline
+├── api/                          # Deployed to Hugging Face Spaces
+│   ├── main.py                   # FastAPI application
+│   ├── test_main.py              # pytest unit tests
+│   ├── requirements.txt          # Python dependencies
+│   ├── Dockerfile                # Container definition
+│   ├── config.json               # Model label config
+│   ├── preprocessor_config.json  # Image preprocessor config
+│   └── model_quantized.onnx      # Quantized ONNX model (Git LFS)
+├── optimization/                 # Model optimization scripts
+│   ├── inference_test.py         # Baseline (PyTorch) benchmark
+│   ├── convers_onnx.py           # ONNX conversion + benchmark
+│   ├── quantization.py           # Dynamic quantization script
+│   ├── test_model.py             # Quick ONNX inference speed test
+│   └── requirements.txt          # Dev dependencies (torch, transformers)
+├── tests/
+│   ├── performance/              # JMeter test plans
+│   │   ├── smoke_test.jmx        # Sanity check (1 user)
+│   │   ├── load_test.jmx         # Normal load (50 users)
+│   │   ├── stress_test.jmx       # Breaking point (1→200 users)
+│   │   ├── spike_test.jmx        # Viral spike (1→100→1 users)
+│   │   └── endurance_test.jmx    # Soak test (10 users, 12 hours)
+│   └── resources/
+│       └── car.jpeg              # Test image for JMeter
+├── postman_collection.json       # Postman API test collection
+├── .github/workflows/
+│   └── cicd.yml                  # CI/CD pipeline
+└── README.md
 ```
 
 ## Model Optimization Results
 
-| Model | Size (MB) | Latency (ms) |
-|-------|-----------|--------------|
-| Original (PyTorch) | ~107 | ~350 |
-| ONNX | ~107 | ~120 |
-| ONNX Quantized (INT8) | ~27 | ~60 |
+| Model | Size (MB) | Latency (ms) | Prediction |
+|-------|-----------|--------------|------------|
+| Original (PyTorch) | 328.28 | 153.24 ±7.08 | Dodge Charger |
+| ONNX | 328.49 | 120.84 ±5.92 | Dodge Charger |
+| ONNX Quantized (INT8) | **83.28** | **41.90 ±3.13** | Chevrolet Camaro |
 
 ## Running Locally with Docker
 

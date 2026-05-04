@@ -1,7 +1,7 @@
 import asyncio
 import io
 import json
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from pydantic import BaseModel, Field
@@ -12,22 +12,29 @@ import onnxruntime as ort
 QUANTIZED_MODEL_PATH = "model_quantized.onnx"
 CONFIG_PATH = "config.json"
 
-session = None
-id2label = None
+# Per-process globals — loaded once per worker by _init_worker, not shared across processes
+_worker_session = None
+_worker_id2label = None
+
+def _init_worker():
+    global _worker_session, _worker_id2label
+    _worker_session = ort.InferenceSession(
+        QUANTIZED_MODEL_PATH, providers=["CPUExecutionProvider"]
+    )
+    with open(CONFIG_PATH) as f:
+        cfg = json.load(f)
+    _worker_id2label = {int(k): v for k, v in cfg["id2label"].items()}
+
+executor = None
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    global session, id2label
-    session = ort.InferenceSession(QUANTIZED_MODEL_PATH, providers=["CPUExecutionProvider"])
-    with open(CONFIG_PATH) as f:
-        cfg = json.load(f)
-    id2label = {int(k): v for k, v in cfg["id2label"].items()}
+    global executor
+    executor = ProcessPoolExecutor(max_workers=4, initializer=_init_worker)
     yield
+    executor.shutdown(wait=False)
 
 app = FastAPI(title="Car Models Classification API", lifespan=lifespan)
-
-# ONNX Runtime releases the GIL during inference — ThreadPoolExecutor ทำงาน parallel ได้จริง
-executor = ThreadPoolExecutor(max_workers=4)
 
 # Reject requests beyond this queue depth instead of silently timing out
 MAX_CONCURRENT_REQUESTS = 50
@@ -45,10 +52,10 @@ def run_inference(image_bytes: bytes):
     try:
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         pixel_values = preprocess(image)
-        input_name = session.get_inputs()[0].name
-        outputs = session.run(None, {input_name: pixel_values})
+        input_name = _worker_session.get_inputs()[0].name
+        outputs = _worker_session.run(None, {input_name: pixel_values})
         predicted_idx = int(outputs[0].argmax(-1))
-        return {"prediction": id2label[predicted_idx]}
+        return {"prediction": _worker_id2label[predicted_idx]}
     except Exception as e:
         return {"error": str(e)}
 
