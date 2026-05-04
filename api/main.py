@@ -29,6 +29,10 @@ app = FastAPI(title="Car Models Classification API", lifespan=lifespan)
 # ONNX Runtime releases the GIL during inference — ThreadPoolExecutor ทำงาน parallel ได้จริง
 executor = ThreadPoolExecutor(max_workers=4)
 
+# Reject requests beyond this queue depth instead of silently timing out
+MAX_CONCURRENT_REQUESTS = 50
+_semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+
 def preprocess(image: Image.Image) -> np.ndarray:
     """Resize → rescale (÷255) → normalize (mean=std=0.5) → CHW → batch"""
     image = image.resize((224, 224), Image.BICUBIC)
@@ -69,8 +73,16 @@ async def predict_image(file: UploadFile = File(...)):
     except UnidentifiedImageError:
         raise HTTPException(status_code=400, detail="File is corrupted or not a valid image format.")
 
-    loop = asyncio.get_running_loop()
-    result = await loop.run_in_executor(executor, run_inference, image_bytes)
+    try:
+        await asyncio.wait_for(_semaphore.acquire(), timeout=3.0)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=503, detail="Server is overloaded. Please try again later.")
+
+    try:
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(executor, run_inference, image_bytes)
+    finally:
+        _semaphore.release()
 
     if "error" in result:
         raise HTTPException(status_code=500, detail=f"Model Inference Failed: {result['error']}")
