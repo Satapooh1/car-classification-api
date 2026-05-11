@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Car Classification API",
-    "description": "Postman collection for the High-Throughput Image Classification API",
+    "description": "Postman collection for the High-Throughput Image Classification API (FastAPI + ONNX quantized model, ProcessPoolExecutor with 4 workers, max 50 concurrent requests)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -12,7 +12,7 @@
     },
     {
       "key": "base_url_cloud",
-      "value": "https://YOUR_HF_USERNAME-YOUR_SPACE_NAME.hf.space",
+      "value": "https://satapooh-car-classification-api.hf.space",
       "type": "string"
     }
   ],
@@ -34,7 +34,7 @@
               "key": "file",
               "type": "file",
               "src": "/path/to/your/car.jpg",
-              "description": "Image file to classify (max 5MB)"
+              "description": "Image file to classify (JPEG/PNG/etc., max 5 MB)"
             }
           ]
         },
@@ -43,19 +43,20 @@
           "host": ["{{base_url_local}}"],
           "path": ["predict"]
         },
-        "description": "Upload an image to classify against the car model dataset. Returns predicted car model name."
+        "description": "Upload an image to classify against the car model dataset. Returns predicted car model name and the uploaded filename."
       },
       "response": [
         {
-          "name": "Success",
+          "name": "200 OK – Success",
           "status": "OK",
           "code": 200,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
           "body": "{\n  \"filename\": \"car.jpg\",\n  \"prediction\": \"Toyota Corolla 2018\"\n}"
         }
       ]
     },
     {
-      "name": "Predict (Cloud - Hugging Face Spaces)",
+      "name": "Predict (Cloud – Hugging Face Spaces)",
       "request": {
         "method": "POST",
         "header": [
@@ -71,7 +72,7 @@
               "key": "file",
               "type": "file",
               "src": "/path/to/your/car.jpg",
-              "description": "Image file to classify (max 5MB)"
+              "description": "Image file to classify (JPEG/PNG/etc., max 5 MB)"
             }
           ]
         },
@@ -80,11 +81,20 @@
           "host": ["{{base_url_cloud}}"],
           "path": ["predict"]
         },
-        "description": "Same endpoint on Hugging Face Spaces cloud deployment."
-      }
+        "description": "Same /predict endpoint deployed on Hugging Face Spaces."
+      },
+      "response": [
+        {
+          "name": "200 OK – Success",
+          "status": "OK",
+          "code": 200,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
+          "body": "{\n  \"filename\": \"car.jpg\",\n  \"prediction\": \"Toyota Corolla 2018\"\n}"
+        }
+      ]
     },
     {
-      "name": "Predict - Invalid File Type (expect 400)",
+      "name": "Predict – Invalid File Type (expect 400)",
       "request": {
         "method": "POST",
         "header": [
@@ -100,7 +110,7 @@
               "key": "file",
               "type": "file",
               "src": "/path/to/document.txt",
-              "description": "Non-image file — should return 400"
+              "description": "Non-image file (content-type must NOT start with 'image/') — should return 400"
             }
           ]
         },
@@ -109,19 +119,58 @@
           "host": ["{{base_url_local}}"],
           "path": ["predict"]
         },
-        "description": "Test error handling: uploading a non-image file should return HTTP 400."
+        "description": "Test error handling: uploading a file whose content-type does not start with 'image/' returns HTTP 400."
       },
       "response": [
         {
-          "name": "400 Bad Request",
+          "name": "400 Bad Request – Invalid file type",
           "status": "Bad Request",
           "code": 400,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
           "body": "{\n  \"detail\": \"Invalid file type. Please upload an image.\"\n}"
         }
       ]
     },
     {
-      "name": "Predict - Corrupted Image (expect 400)",
+      "name": "Predict – File Too Large (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/large_image_over_5mb.jpg",
+              "description": "Image file larger than 5 MB — should return 400"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url_local}}/predict",
+          "host": ["{{base_url_local}}"],
+          "path": ["predict"]
+        },
+        "description": "Test error handling: uploading an image that exceeds the 5 MB size limit returns HTTP 400."
+      },
+      "response": [
+        {
+          "name": "400 Bad Request – File too large",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
+          "body": "{\n  \"detail\": \"File size exceeds the 5MB limit.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Predict – Corrupted Image (expect 400)",
       "request": {
         "method": "POST",
         "header": [
@@ -137,7 +186,7 @@
               "key": "file",
               "type": "file",
               "src": "/path/to/broken.jpg",
-              "description": "Corrupted image file — should return 400"
+              "description": "File with image content-type but invalid/corrupted bytes — should return 400"
             }
           ]
         },
@@ -146,14 +195,91 @@
           "host": ["{{base_url_local}}"],
           "path": ["predict"]
         },
-        "description": "Test error handling: uploading a corrupted image should return HTTP 400."
+        "description": "Test error handling: uploading a corrupted or unreadable image returns HTTP 400. PIL.Image.verify() raises UnidentifiedImageError internally."
       },
       "response": [
         {
-          "name": "400 Bad Request",
+          "name": "400 Bad Request – Corrupted image",
           "status": "Bad Request",
           "code": 400,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
           "body": "{\n  \"detail\": \"File is corrupted or not a valid image format.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Predict – Server Overloaded (expect 503)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/your/car.jpg",
+              "description": "Valid image — but server queue is full (>50 concurrent requests)"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url_local}}/predict",
+          "host": ["{{base_url_local}}"],
+          "path": ["predict"]
+        },
+        "description": "Simulates queue saturation: when >50 requests are in-flight simultaneously, the semaphore times out after 3 s and returns HTTP 503. Reproduce by running a load test (e.g. Locust) that exceeds MAX_CONCURRENT_REQUESTS=50."
+      },
+      "response": [
+        {
+          "name": "503 Service Unavailable – Overloaded",
+          "status": "Service Unavailable",
+          "code": 503,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
+          "body": "{\n  \"detail\": \"Server is overloaded. Please try again later.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Predict – Inference Error (expect 500)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/your/car.jpg",
+              "description": "Valid image — but ONNX runtime or worker process raises an unexpected exception"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url_local}}/predict",
+          "host": ["{{base_url_local}}"],
+          "path": ["predict"]
+        },
+        "description": "Documents the 500 response returned when run_inference() returns an error dict (unhandled exception inside the ProcessPoolExecutor worker). Cannot be triggered directly via file upload; requires the model file to be absent or corrupted."
+      },
+      "response": [
+        {
+          "name": "500 Internal Server Error – Inference failed",
+          "status": "Internal Server Error",
+          "code": 500,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
+          "body": "{\n  \"detail\": \"Model Inference Failed: <error message from worker>\"\n}"
         }
       ]
     }
