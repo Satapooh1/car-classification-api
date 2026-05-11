@@ -80,6 +80,7 @@ Accepts a multipart form upload with a single image file (max 5 MB).
 
 **Error codes:**
 - `400` — not an image, corrupted file, or file > 5 MB
+- `503` — server overloaded (>50 concurrent requests, queue timeout after 3 s)
 - `500` — model inference failure
 
 ### cURL (Cloud)
